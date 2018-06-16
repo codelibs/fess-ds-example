@@ -5,7 +5,4 @@
 	<component name="sampleDataStore" class="org.codelibs.fess.ds.sample.SampleDataStore">
 		<postConstruct name="register"></postConstruct>
 	</component>
-	<component name="sampleListDataStore" class="org.codelibs.fess.ds.sample.SampleListDataStore">
-		<postConstruct name="register"></postConstruct>
-	</component>
 </components>
