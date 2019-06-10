@@ -15,11 +15,10 @@
  */
 package org.codelibs.fess.ds.sample;
 
-import org.codelibs.fess.ds.sample.SampleDataStore;
 import org.codelibs.fess.util.ComponentUtil;
-import org.dbflute.utflute.lastadi.ContainerTestCase;
+import org.dbflute.utflute.lastaflute.LastaFluteTestCase;
 
-public class SampleDataStoreTest extends ContainerTestCase {
+public class SampleDataStoreTest extends LastaFluteTestCase {
     public SampleDataStore dataStore;
 
     @Override
