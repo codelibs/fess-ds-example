@@ -35,7 +35,7 @@ public class SampleDataStore extends AbstractDataStore {
     private static final Logger logger = LoggerFactory.getLogger(SampleDataStore.class);
 
     protected String getName() {
-        return "Sample";
+        return this.getClass().getSimpleName();
     }
 
     @Override
