@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 public class SampleDataStore extends AbstractDataStore {
     private static final Logger logger = LoggerFactory.getLogger(SampleDataStore.class);
 
+    @Override
     protected String getName() {
         return this.getClass().getSimpleName();
     }
