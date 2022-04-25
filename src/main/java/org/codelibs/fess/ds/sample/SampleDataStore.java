@@ -24,8 +24,12 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
 import org.codelibs.fess.ds.AbstractDataStore;
 import org.codelibs.fess.ds.callback.IndexUpdateCallback;
+import org.codelibs.fess.entity.DataStoreParams;
 import org.codelibs.fess.es.config.exentity.DataConfig;
 import org.codelibs.fess.exception.DataStoreCrawlingException;
+import org.codelibs.fess.helper.CrawlerStatsHelper;
+import org.codelibs.fess.helper.CrawlerStatsHelper.StatsAction;
+import org.codelibs.fess.helper.CrawlerStatsHelper.StatsKeyObject;
 import org.codelibs.fess.mylasta.direction.FessConfig;
 import org.codelibs.fess.util.ComponentUtil;
 import org.slf4j.Logger;
@@ -40,14 +44,17 @@ public class SampleDataStore extends AbstractDataStore {
     }
 
     @Override
-    protected void storeData(final DataConfig dataConfig, final IndexUpdateCallback callback, final Map<String, String> paramMap,
+    protected void storeData(final DataConfig dataConfig, final IndexUpdateCallback callback, final DataStoreParams paramMap,
             final Map<String, String> scriptMap, final Map<String, Object> defaultDataMap) {
         final FessConfig fessConfig = ComponentUtil.getFessConfig();
+        final CrawlerStatsHelper crawlerStatsHelper = ComponentUtil.getCrawlerStatsHelper();
 
         final long readInterval = getReadInterval(paramMap);
-        final int dataSize = paramMap.get("data.size") != null ? Integer.parseInt(paramMap.get("data.size")) : 10;
+        final int dataSize = paramMap.get("data.size") instanceof final String value ? Integer.parseInt(value) : 10;
         boolean running = true;
         for (int i = 0; i < dataSize && running; i++) {
+            final StatsKeyObject statsKey = new StatsKeyObject(dataConfig.getId() + "#" + i);
+            crawlerStatsHelper.begin(statsKey);
             final Map<String, Object> dataMap = new HashMap<>();
             try {
                 dataMap.put(fessConfig.getIndexFieldUrl(), "http://fess.codelibs.org/?sample=" + i);
@@ -59,13 +66,15 @@ public class SampleDataStore extends AbstractDataStore {
                 dataMap.put(fessConfig.getIndexFieldAnchor(), "http://fess.codelibs.org/?from=" + i);
                 dataMap.put(fessConfig.getIndexFieldContentLength(), i * 100L);
                 dataMap.put(fessConfig.getIndexFieldLastModified(), new Date());
+                crawlerStatsHelper.record(statsKey, StatsAction.PREPARED);
                 callback.store(paramMap, dataMap);
+                crawlerStatsHelper.record(statsKey, StatsAction.FINISHED);
             } catch (final CrawlingAccessException e) {
-                logger.warn("Crawling Access Exception at : " + dataMap, e);
+                logger.warn("Crawling Access Exception at : {}", dataMap, e);
 
                 Throwable target = e;
-                if (target instanceof MultipleCrawlingAccessException) {
-                    final Throwable[] causes = ((MultipleCrawlingAccessException) target).getCauses();
+                if (target instanceof MultipleCrawlingAccessException ex) {
+                    final Throwable[] causes = ex.getCauses();
                     if (causes.length > 0) {
                         target = causes[causes.length - 1];
                     }
@@ -80,8 +89,7 @@ public class SampleDataStore extends AbstractDataStore {
                 }
 
                 String url;
-                if (target instanceof DataStoreCrawlingException) {
-                    final DataStoreCrawlingException dce = (DataStoreCrawlingException) target;
+                if (target instanceof DataStoreCrawlingException dce) {
                     url = dce.getUrl();
                     if (dce.aborted()) {
                         running = false;
@@ -91,8 +99,9 @@ public class SampleDataStore extends AbstractDataStore {
                 }
                 final FailureUrlService failureUrlService = ComponentUtil.getComponent(FailureUrlService.class);
                 failureUrlService.store(dataConfig, errorName, url, target);
+                crawlerStatsHelper.record(statsKey, StatsAction.ACCESS_EXCEPTION);
             } catch (final Throwable t) {
-                logger.warn("Crawling Access Exception at : " + dataMap, t);
+                logger.warn("Crawling Access Exception at : {}", dataMap, t);
                 final String url = "line:" + i;
                 final FailureUrlService failureUrlService = ComponentUtil.getComponent(FailureUrlService.class);
                 failureUrlService.store(dataConfig, t.getClass().getCanonicalName(), url, t);
@@ -100,7 +109,9 @@ public class SampleDataStore extends AbstractDataStore {
                 if (readInterval > 0) {
                     sleep(readInterval);
                 }
-
+                crawlerStatsHelper.record(statsKey, StatsAction.EXCEPTION);
+            } finally {
+                crawlerStatsHelper.done(statsKey);
             }
         }
     }
