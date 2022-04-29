@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.codelibs.fess.Constants;
 import org.codelibs.fess.app.service.FailureUrlService;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
@@ -54,9 +55,11 @@ public class SampleDataStore extends AbstractDataStore {
         boolean running = true;
         for (int i = 0; i < dataSize && running; i++) {
             final StatsKeyObject statsKey = new StatsKeyObject(dataConfig.getId() + "#" + i);
-            crawlerStatsHelper.begin(statsKey);
+            paramMap.put(Constants.CRAWLER_STATS_KEY, statsKey);
             final Map<String, Object> dataMap = new HashMap<>();
             try {
+                crawlerStatsHelper.begin(statsKey);
+
                 dataMap.put(fessConfig.getIndexFieldUrl(), "http://fess.codelibs.org/?sample=" + i);
                 dataMap.put(fessConfig.getIndexFieldHost(), "fess.codelibs.org");
                 dataMap.put(fessConfig.getIndexFieldSite(), "fess.codelibs.org/" + i);
