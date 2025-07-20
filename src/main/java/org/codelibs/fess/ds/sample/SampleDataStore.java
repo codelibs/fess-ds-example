@@ -36,8 +36,20 @@ import org.codelibs.fess.mylasta.direction.FessConfig;
 import org.codelibs.fess.opensearch.config.exentity.DataConfig;
 import org.codelibs.fess.util.ComponentUtil;
 
+/**
+ * This class is a sample data store implementation for Fess.
+ * It generates sample documents for crawling and indexing.
+ * The number of documents can be configured via the "data.size" parameter.
+ */
 public class SampleDataStore extends AbstractDataStore {
     private static final Logger logger = LogManager.getLogger(SampleDataStore.class);
+
+    /**
+     * Default constructor.
+     */
+    public SampleDataStore() {
+        super();
+    }
 
     @Override
     protected String getName() {
