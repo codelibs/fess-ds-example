@@ -43,8 +43,19 @@ public class SampleDataStoreTest extends LastaFluteTestCase {
         super.tearDown();
     }
 
-    public void test_xxx() {
-        // TODO
-        assertTrue(true);
+    public void test_getName() {
+        String name = dataStore.getName();
+        assertEquals("SampleDataStore", name);
+    }
+
+    public void test_constructor() {
+        SampleDataStore testDataStore = new SampleDataStore();
+        assertNotNull(testDataStore);
+        assertEquals("SampleDataStore", testDataStore.getName());
+    }
+
+    public void test_initialization() {
+        assertNotNull(dataStore);
+        assertTrue(dataStore instanceof SampleDataStore);
     }
 }
