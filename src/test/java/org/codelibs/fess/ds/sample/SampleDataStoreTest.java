@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -321,9 +322,8 @@ public class SampleDataStoreTest extends LastaFluteTestCase {
             Map<String, String> scriptMap = new HashMap<>();
             Map<String, Object> defaultDataMap = new HashMap<>();
 
-            // Create aborted exception
-            DataStoreCrawlingException exception = new DataStoreCrawlingException("http://test.com", "Aborted");
-            exception.setAborted(true);
+            // Create aborted exception (url, message, cause, aborted)
+            DataStoreCrawlingException exception = new DataStoreCrawlingException("http://test.com", "Aborted", null, true);
 
             // Throw exception on second call
             doNothing()
