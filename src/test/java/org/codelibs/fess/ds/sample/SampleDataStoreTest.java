@@ -263,9 +263,9 @@ public class SampleDataStoreTest extends LastaFluteTestCase {
             Map<String, Object> defaultDataMap = new HashMap<>();
 
             // Throw exception on first store call
-            doThrow(new CrawlingAccessException("Test exception"))
-                    .doNothing()
-                    .when(callback).store(any(DataStoreParams.class), any(Map.class));
+            doThrow(new CrawlingAccessException("Test exception")).doNothing()
+                    .when(callback)
+                    .store(any(DataStoreParams.class), any(Map.class));
 
             dataStore.storeData(dataConfig, callback, paramMap, scriptMap, defaultDataMap);
 
@@ -296,8 +296,8 @@ public class SampleDataStoreTest extends LastaFluteTestCase {
             // Create MultipleCrawlingAccessException with causes
             Throwable cause1 = new RuntimeException("Cause 1");
             Throwable cause2 = new IllegalStateException("Cause 2");
-            MultipleCrawlingAccessException exception = new MultipleCrawlingAccessException("Multiple errors",
-                    new Throwable[] { cause1, cause2 });
+            MultipleCrawlingAccessException exception =
+                    new MultipleCrawlingAccessException("Multiple errors", new Throwable[] { cause1, cause2 });
 
             doThrow(exception).when(callback).store(any(DataStoreParams.class), any(Map.class));
 
@@ -326,9 +326,7 @@ public class SampleDataStoreTest extends LastaFluteTestCase {
             DataStoreCrawlingException exception = new DataStoreCrawlingException("http://test.com", "Aborted", null, true);
 
             // Throw exception on second call
-            doNothing()
-                    .doThrow(exception)
-                    .when(callback).store(any(DataStoreParams.class), any(Map.class));
+            doNothing().doThrow(exception).when(callback).store(any(DataStoreParams.class), any(Map.class));
 
             dataStore.storeData(dataConfig, callback, paramMap, scriptMap, defaultDataMap);
 
@@ -354,9 +352,7 @@ public class SampleDataStoreTest extends LastaFluteTestCase {
             Map<String, Object> defaultDataMap = new HashMap<>();
 
             // Throw generic exception on first call
-            doThrow(new RuntimeException("Generic error"))
-                    .doNothing()
-                    .when(callback).store(any(DataStoreParams.class), any(Map.class));
+            doThrow(new RuntimeException("Generic error")).doNothing().when(callback).store(any(DataStoreParams.class), any(Map.class));
 
             dataStore.storeData(dataConfig, callback, paramMap, scriptMap, defaultDataMap);
 
@@ -407,10 +403,10 @@ public class SampleDataStoreTest extends LastaFluteTestCase {
             Map<String, Object> defaultDataMap = new HashMap<>();
 
             // Throw exception on second call
-            doNothing()
-                    .doThrow(new RuntimeException("Test error"))
+            doNothing().doThrow(new RuntimeException("Test error"))
                     .doNothing()
-                    .when(callback).store(any(DataStoreParams.class), any(Map.class));
+                    .when(callback)
+                    .store(any(DataStoreParams.class), any(Map.class));
 
             dataStore.storeData(dataConfig, callback, paramMap, scriptMap, defaultDataMap);
 
