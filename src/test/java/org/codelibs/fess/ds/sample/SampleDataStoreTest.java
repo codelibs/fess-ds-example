@@ -45,12 +45,12 @@ import org.codelibs.fess.helper.CrawlerStatsHelper.StatsKeyObject;
 import org.codelibs.fess.mylasta.direction.FessConfig;
 import org.codelibs.fess.opensearch.config.exentity.DataConfig;
 import org.codelibs.fess.util.ComponentUtil;
-import org.dbflute.utflute.lastaflute.LastaFluteTestCase;
+import org.codelibs.fess.ds.example.UnitDsTestCase;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-public class SampleDataStoreTest extends LastaFluteTestCase {
+public class SampleDataStoreTest extends UnitDsTestCase {
     private SampleDataStore dataStore;
     private FessConfig fessConfig;
     private CrawlerStatsHelper crawlerStatsHelper;
