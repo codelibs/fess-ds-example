@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.ds.sample;
 
+import org.junit.jupiter.api.TestInfo;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -43,12 +45,12 @@ import org.codelibs.fess.helper.CrawlerStatsHelper.StatsKeyObject;
 import org.codelibs.fess.mylasta.direction.FessConfig;
 import org.codelibs.fess.opensearch.config.exentity.DataConfig;
 import org.codelibs.fess.util.ComponentUtil;
-import org.dbflute.utflute.lastaflute.LastaFluteTestCase;
+import org.codelibs.fess.ds.example.UnitDsTestCase;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-public class SampleDataStoreTest extends LastaFluteTestCase {
+public class SampleDataStoreTest extends UnitDsTestCase {
     private SampleDataStore dataStore;
     private FessConfig fessConfig;
     private CrawlerStatsHelper crawlerStatsHelper;
@@ -68,8 +70,8 @@ public class SampleDataStoreTest extends LastaFluteTestCase {
     }
 
     @Override
-    public void setUp() throws Exception {
-        super.setUp();
+    public void setUp(TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         dataStore = new SampleDataStore();
 
         // Mock FessConfig
@@ -102,9 +104,9 @@ public class SampleDataStoreTest extends LastaFluteTestCase {
     }
 
     @Override
-    public void tearDown() throws Exception {
+    public void tearDown(TestInfo testInfo) throws Exception {
         ComponentUtil.setFessConfig(null);
-        super.tearDown();
+        super.tearDown(testInfo);
     }
 
     /**
