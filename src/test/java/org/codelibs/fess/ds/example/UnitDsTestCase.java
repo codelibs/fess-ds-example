@@ -16,11 +16,11 @@
 package org.codelibs.fess.ds.example;
 
 import org.codelibs.fess.util.ComponentUtil;
-import org.dbflute.utflute.lastaflute.LastaFluteTestCase;
+import org.dbflute.utflute.lastadi.LastaDiTestCase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.TestInfo;
 
-public abstract class UnitDsTestCase extends LastaFluteTestCase {
+public abstract class UnitDsTestCase extends LastaDiTestCase {
     @Override
     protected String prepareConfigFile() {
         return "test_app.xml";

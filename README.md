@@ -6,15 +6,16 @@
 
 ## Overview
 
-This project provides a sample implementation of a Data Store extension for [Fess](https://github.com/codelibs/fess), the Enterprise Search Server. The Sample Data Store generates mock documents for testing and demonstration purposes, allowing developers to understand how to create custom data store crawlers for Fess.
+This project provides an example implementation of a Data Store extension for [Fess](https://github.com/codelibs/fess), the Enterprise Search Server. The Example Data Store generates synthetic source records and maps them to index fields through the standard Fess data store pipeline, serving as a copy-from template for developers who want to create their own custom data store crawlers.
 
 ## Features
 
-- **Sample Document Generation**: Creates configurable number of mock documents with realistic metadata
-- **Configurable Data Size**: Control the number of generated documents via the `data.size` parameter
-- **Complete Data Store Implementation**: Demonstrates all aspects of implementing a Fess data store
-- **Error Handling**: Includes proper exception handling and failure URL management
-- **Stats Integration**: Integrates with Fess crawler statistics system
+- **Synthetic Source Generation**: Creates a configurable number of in-memory source records that stand in for rows/objects retrieved from an external system
+- **Script-based Field Mapping**: Maps source fields to index fields via the admin-configured script map (`scriptMap`), exactly like the real data store plugins
+- **Configurable Data Size**: Control the number of generated records via the `data.size` parameter
+- **Complete Data Store Implementation**: Demonstrates the full `storeData` lifecycle
+- **Error Handling**: Includes proper exception handling, abort support, and failure URL management
+- **Stats Integration**: Integrates with the Fess crawler statistics system (`CrawlerStatsHelper`)
 
 ## Requirements
 
@@ -41,7 +42,7 @@ mvn clean package
 1. Download or build the JAR file
 2. Copy the JAR to your Fess plugin directory
 3. Restart Fess
-4. Follow the [Plugin Administration Guide](https://fess.codelibs.org/13.11/admin/plugin-guide.html) for detailed installation instructions
+4. Follow the [Plugin Administration Guide](https://fess.codelibs.org/15.7/admin/plugin-guide.html) for detailed installation instructions
 
 ## Usage
 
@@ -49,25 +50,39 @@ mvn clean package
 
 1. In Fess Administration Console, navigate to **Crawl > Data Store**
 2. Create a new Data Store configuration
-3. Set the **Handler Name** to `SampleDataStore`
+3. Set the **Handler Name** to `ExampleDataStore`
 4. Configure parameters:
-   - `data.size`: Number of sample documents to generate (default: 10)
+   - `data.size`: Number of source records to generate (default: 10)
+   - `readInterval`: Interval in milliseconds to wait between records (default: 0)
+5. Configure the script map to map source fields to index fields
 
 ### Example Configuration
 
+**Parameters:**
+
 ```
-Handler Name: SampleDataStore
-Parameters:
 data.size=50
 ```
 
-This configuration will generate 50 sample documents with the following structure:
+**Script:**
 
-- **URL**: `http://fess.codelibs.org/?sample={index}`
-- **Title**: `Sample {index}`
-- **Content**: `Sample Test{index}`
-- **Host**: `fess.codelibs.org`
-- **Site**: `fess.codelibs.org/{index}`
+```
+title=title
+content=body
+url=url
+```
+
+Each generated source record exposes the following fields, which can be referenced from the script map:
+
+| Source field | Description |
+| ------------ | ----------- |
+| `id`         | Sequential identifier (`0`, `1`, ...) |
+| `title`      | `Sample {index}` |
+| `body`       | `Sample body text for record {index}` |
+| `url`        | `http://fess.codelibs.org/?sample={index}` |
+| `created`    | Timestamp when the record was generated |
+
+With the example script above, each of the 50 generated records is indexed as a document whose `title`, `content`, and `url` index fields are derived from the source `title`, `body`, and `url` fields respectively. The mapping is entirely defined by the script map, not hard-coded in the data store.
 
 ## Development
 
@@ -75,17 +90,24 @@ This configuration will generate 50 sample documents with the following structur
 
 ```
 src/
-├── main/java/org/codelibs/fess/ds/sample/
-│   └── SampleDataStore.java          # Main data store implementation
-└── test/java/org/codelibs/fess/ds/sample/
-    └── SampleDataStoreTest.java      # Unit tests
+├── main/
+│   ├── java/org/codelibs/fess/ds/example/
+│   │   └── ExampleDataStore.java         # Main data store implementation
+│   └── resources/
+│       └── fess_ds++.xml                 # Lasta Di component registration
+└── test/
+    ├── java/org/codelibs/fess/ds/example/
+    │   ├── ExampleDataStoreTest.java      # Unit tests
+    │   └── UnitDsTestCase.java           # UTFlute base test case (LastaDiTestCase)
+    └── resources/
+        └── test_app.xml                  # DI configuration for tests
 ```
 
 ### Key Components
 
-- **SampleDataStore**: Extends `AbstractDataStore` and implements the core data generation logic
-- **Component Registration**: Configured via `fess_ds++.xml` for dependency injection
-- **Framework Integration**: Built on LastaFlute framework with DBFlute support
+- **ExampleDataStore**: Extends `AbstractDataStore` and implements the `storeData` pipeline (source acquisition -> script-based field mapping -> callback store)
+- **Component Registration**: Registered as the `exampleDataStore` component via `fess_ds++.xml` for dependency injection
+- **Framework Integration**: Built on LastaFlute / Lasta Di, tested with UTFlute (`LastaDiTestCase`)
 
 ### Building and Testing
 
@@ -109,26 +131,35 @@ This project serves as a template for creating custom data store implementations
 
 1. Extend `AbstractDataStore`
 2. Implement `getName()` method
-3. Implement `storeData()` method with proper error handling
-4. Register component in `fess_ds++.xml`
-5. Handle crawler statistics and failure URLs
+3. Implement `storeData()` method:
+   - Acquire the raw source records from the external system (replace `createSourceRecord`)
+   - Build a `resultMap` from `paramMap` plus the source fields
+   - Evaluate each `scriptMap` entry with `convertValue(scriptType, template, resultMap)` and put the results into the `dataMap`
+   - Call `callback.store(paramMap, dataMap)` to index the document
+4. Register the component in `fess_ds++.xml`
+5. Handle crawler statistics (`CrawlerStatsHelper`) and failure URLs (`FailureUrlService`)
+
+The two places you typically customize are marked with `// CUSTOMIZE:` comments in `ExampleDataStore.java`: the source data acquisition and the script type.
 
 ## API Reference
 
-### SampleDataStore Methods
+### ExampleDataStore Methods
 
 #### `getName()`
-Returns the simple class name for identification.
+Returns the simple class name (`ExampleDataStore`) used as the handler name.
 
 #### `storeData(DataConfig, IndexUpdateCallback, DataStoreParams, Map, Map)`
-Generates and stores sample documents based on configuration parameters.
+Generates source records and stores them as documents after applying the script-based field mapping.
 
 **Parameters:**
 - `dataConfig`: Data store configuration
 - `callback`: Callback for storing generated documents
-- `paramMap`: Configuration parameters (including `data.size`)
-- `scriptMap`: Script mapping (unused in this implementation)
-- `defaultDataMap`: Default data mapping (unused in this implementation)
+- `paramMap`: Configuration parameters (including `data.size` and `readInterval`)
+- `scriptMap`: Mapping of index field name to a script template evaluated against the source record
+- `defaultDataMap`: Default field values copied into every generated document
+
+#### `createSourceRecord(int)`
+Builds one synthetic source record. Override or replace this to read from a real external system.
 
 ## Contributing
 
